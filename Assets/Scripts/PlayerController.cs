@@ -54,7 +54,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         this.air -= Time.deltaTime * this.airReductionSpeed;
-        Debug.Log("Player's air = " + this.air);
+        //Debug.Log("Player's air = " + this.air);
         if (this.air < 0)
         {
             this.Respawn();
