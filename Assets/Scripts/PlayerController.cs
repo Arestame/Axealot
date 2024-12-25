@@ -3,6 +3,8 @@ using NUnit.Framework;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
+using static UnityEngine.UI.Image;
 
 public class PlayerController : MonoBehaviour
 {
@@ -23,11 +25,11 @@ public class PlayerController : MonoBehaviour
     public float splitCooldown = 2f; // Cooldown of the split in time
 
     [Tooltip("Position offset when creating the clone")]
-    public Vector3 splitOffset = new Vector3(1, 0, 0); // Relative position of the clone
+    public float splitOffset = 1f; // Relative position of the clone
 
     [Header("Respawn Settings")]
     [Tooltip("Respawn initial position")]
-    public Vector3 initialPosition = new Vector3(0, 1, 0); // Respawn initial position
+    public Vector3 currentRespawnPosition = new Vector3(0, 1, 0); // Respawn initial position
 
     [Tooltip("Respawn initial scale")]
     public Vector3 initialScale = new Vector3(1, 1, 1); // Respawn initial scale
@@ -42,20 +44,30 @@ public class PlayerController : MonoBehaviour
     // Static vars
     private static List<PlayerController> players = new List<PlayerController>(); // Static List to handle active instances of the Player
     private static int activeSplits = 1;
+    private static PlayerController mainPlayer;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         // Register player in the player list
         players.Add(this);
+
+        if (mainPlayer == null) mainPlayer = this; // First player in the main one
+
+        UIManager.Instance.UpdateAirSlider(this.air, FULL_HEALTH);
     }
 
     // Update is called once per frame
     void Update()
     {
         this.air -= Time.deltaTime * this.airReductionSpeed;
+        this.air = Mathf.Max(0, this.air); // We ensure the value is no less than 0
+
+        // Update UI value
+        UIManager.Instance.UpdateAirSlider(this.air, FULL_HEALTH);
+
         //Debug.Log("Player's air = " + this.air);
-        if (this.air < 0)
+        if (this.air <= 0)
         {
             this.Respawn();
         }
@@ -72,11 +84,21 @@ public class PlayerController : MonoBehaviour
                 StartCoroutine(HandleSplitWithDelay()); // Start coroutine to handle split with delay
             }
         }
+
+        if (other.CompareTag("Respawn"))
+        {
+            // Get RespawnController from the trigger
+            RespawnTriggerController respawnTrigger = other.GetComponent<RespawnTriggerController>();
+            if (respawnTrigger != null)
+            {
+                // Actualiza la posición actual de respawn
+                this.currentRespawnPosition = respawnTrigger.playerRespawnPointPosition;
+            }
+        }
     }
 
     IEnumerator HandleSplitWithDelay()
     {
-        Debug.Log($"{gameObject.name} is preparing to split...");
         isCoolingDownSplit = true; // Prevent further splits for this instance
 
         yield return new WaitForSeconds(this.splitDelay); // Wait for half a second
@@ -98,7 +120,6 @@ public class PlayerController : MonoBehaviour
         // Create a new player in the calculated position
         GameObject newPlayer = Instantiate(this.gameObject, this.transform.position + newPosition, Quaternion.identity);
 
-
         // New Player values
         PlayerController newPlayerController = newPlayer.GetComponent<PlayerController>();
         newPlayerController.air = this.air;
@@ -118,11 +139,10 @@ public class PlayerController : MonoBehaviour
     {
         int cloneIndex = players.Count; // Use the current number of players to determine the position
         float angle = cloneIndex * Mathf.PI * 2f / maxNumOfSplits; // Calculate angle in radians
-        float radius = 2f; // Distance from the center (adjust for spacing)
 
         // Calculate position in a circle
-        float offsetX = Mathf.Cos(angle) * radius;
-        float offsetZ = Mathf.Sin(angle) * radius;
+        float offsetX = Mathf.Cos(angle) * this.splitOffset;
+        float offsetZ = Mathf.Sin(angle) * this.splitOffset;
 
         return new Vector3(offsetX, 0, offsetZ);
     }
@@ -145,12 +165,17 @@ public class PlayerController : MonoBehaviour
             Destroy(players[i].gameObject);
             players.RemoveAt(i);
         }
+
+        // Reset value of current splits
         activeSplits = 1;
+
         // Restore values for main player
-        PlayerController mainPlayer = players[0];
         mainPlayer.air = FULL_HEALTH;
-        mainPlayer.transform.position = initialPosition;
+        mainPlayer.transform.position = this.currentRespawnPosition;
         mainPlayer.transform.localScale = initialScale;
+
+        // Reset UI value when respawning
+        UIManager.Instance.UpdateAirSlider(mainPlayer.air, FULL_HEALTH);
     }
 
     // When we destroy this instance, delete it from the list
