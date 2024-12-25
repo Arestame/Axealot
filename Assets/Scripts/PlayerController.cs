@@ -145,7 +145,7 @@ public class PlayerController : MonoBehaviour
             Destroy(players[i].gameObject);
             players.RemoveAt(i);
         }
-
+        activeSplits = 1;
         // Restore values for main player
         PlayerController mainPlayer = players[0];
         mainPlayer.air = FULL_HEALTH;
