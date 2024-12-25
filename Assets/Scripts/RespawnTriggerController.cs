@@ -3,7 +3,7 @@ using UnityEngine;
 public class RespawnTriggerController : MonoBehaviour
 {
 
-    [Tooltip("Palyer Respawn Point Position")]
+    [Tooltip("Player Respawn Point Position")]
     public Vector3 playerRespawnPointPosition;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created

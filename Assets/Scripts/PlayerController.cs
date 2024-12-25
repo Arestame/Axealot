@@ -171,8 +171,10 @@ public class PlayerController : MonoBehaviour
 
         // Restore values for main player
         mainPlayer.air = FULL_HEALTH;
+        mainPlayer.currentRespawnPosition = this.currentRespawnPosition;
         mainPlayer.transform.position = this.currentRespawnPosition;
         mainPlayer.transform.localScale = initialScale;
+
 
         // Reset UI value when respawning
         UIManager.Instance.UpdateAirSlider(mainPlayer.air, FULL_HEALTH);
