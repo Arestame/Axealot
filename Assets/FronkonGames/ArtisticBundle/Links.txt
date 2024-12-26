@@ -1,0 +1,10 @@
+Color Isolation:  https://assetstore.unity.com/packages/slug/266086
+Comic:            https://assetstore.unity.com/packages/slug/269586
+Neon:             https://assetstore.unity.com/packages/slug/270269
+Oil Paint:        https://assetstore.unity.com/packages/slug/264134
+One Bit:          https://assetstore.unity.com/packages/slug/216000
+Radial Blur:      https://assetstore.unity.com/packages/slug/271547
+Sharpen:          https://assetstore.unity.com/packages/slug/266728
+Spark:            https://assetstore.unity.com/packages/slug/270898
+Tilt Shift:       https://assetstore.unity.com/packages/slug/265465
+Tonemapper:       https://assetstore.unity.com/packages/slug/267617
