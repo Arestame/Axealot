@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 public class DynamicPlatform : MonoBehaviour
 {
@@ -11,17 +13,17 @@ public class DynamicPlatform : MonoBehaviour
     [Header("Platform Settings")]
     public PlatformType platformType; // Type of logic used for the platform
     public int numberOfPlayers;
-    public Vector3 pointA = Vector3.zero; // Point A
-    public Vector3 pointB = Vector3.right; // Point B
+    public List<Vector3> points; // List of points for the platform to follow
     public float speed = 2f;              // Movement speed of the platform
     public float stopTime = 2f;           // Wait time at each point
 
     private int numberOfPlayersOnPlatform = 0;
-    private Vector3 target;               // Current target
+    private int currentTargetIndex = 0;   // Current target point index
     private bool isStopped = false;       // Indicates if the platform is stopped
     private Rigidbody rb;                 // Platform rigidbody
     private Vector3 previousPosition;     // Previous position of the platform
     private bool shouldMove = false;
+    private bool isReversing = false;     // Indicates if the platform is moving backwards through the points
 
     private void Start()
     {
@@ -32,8 +34,13 @@ public class DynamicPlatform : MonoBehaviour
             return;
         }
 
+        if (points == null || points.Count < 2)
+        {
+            Debug.LogError("Please provide at least two points for the platform to move between.");
+            return;
+        }
+
         this.rb.isKinematic = true; // Configure rigidbody as kinematic
-        this.target = this.pointB;       // Start moving to point B
         this.previousPosition = this.transform.position; // Initialize previous position
     }
 
@@ -73,7 +80,8 @@ public class DynamicPlatform : MonoBehaviour
 
     private void MovePlatform()
     {
-        // Move the platform towards the target using Rigidbody.MovePosition
+        // Move the platform towards the current target point using Rigidbody.MovePosition
+        Vector3 target = points[currentTargetIndex];
         Vector3 newPosition = Vector3.MoveTowards(transform.position, target, speed * Time.fixedDeltaTime);
         rb.MovePosition(newPosition); // Use MovePosition for smooth movement
 
@@ -88,7 +96,27 @@ public class DynamicPlatform : MonoBehaviour
     {
         isStopped = true; // Stop the platform
         yield return new WaitForSeconds(stopTime); // Wait
-        target = target == pointA ? pointB : pointA; // Switch the target
+
+        // Determine the next target index
+        if (!isReversing)
+        {
+            currentTargetIndex++;
+            if (currentTargetIndex >= points.Count)
+            {
+                currentTargetIndex = points.Count - 2; // Reverse direction
+                isReversing = true;
+            }
+        }
+        else
+        {
+            currentTargetIndex--;
+            if (currentTargetIndex < 0)
+            {
+                currentTargetIndex = 1; // Reverse direction
+                isReversing = false;
+            }
+        }
+
         isStopped = false; // Reactivate movement
     }
 
@@ -96,7 +124,6 @@ public class DynamicPlatform : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Player entered the platform trigger.");
             this.numberOfPlayersOnPlatform++;
             other.transform.SetParent(transform); // Make the player a child of the platform
         }
@@ -106,7 +133,6 @@ public class DynamicPlatform : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Player exited the platform trigger.");
             this.numberOfPlayersOnPlatform--;
             other.transform.SetParent(null); // Remove the player from the platform
         }
@@ -115,9 +141,15 @@ public class DynamicPlatform : MonoBehaviour
     private void OnDrawGizmos()
     {
         // Visualize the destination points in the editor
-        Gizmos.color = Color.green;
-        Gizmos.DrawLine(pointA, pointB);
-        Gizmos.DrawSphere(pointA, 0.2f);
-        Gizmos.DrawSphere(pointB, 0.2f);
+        if (points != null && points.Count > 1)
+        {
+            Gizmos.color = Color.green;
+            for (int i = 0; i < points.Count - 1; i++)
+            {
+                Gizmos.DrawLine(points[i], points[i + 1]);
+                Gizmos.DrawSphere(points[i], 0.2f);
+            }
+            Gizmos.DrawSphere(points[points.Count - 1], 0.2f);
+        }
     }
 }
