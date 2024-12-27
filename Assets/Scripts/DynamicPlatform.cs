@@ -2,16 +2,26 @@ using UnityEngine;
 
 public class DynamicPlatform : MonoBehaviour
 {
+    public enum PlatformType
+    {
+        MaxPlayersToMove, // The platform will only move with a cap of the max players on it
+        MinPlayerToMove   // The platform will only move with a cap of the min players on it
+    }
+
     [Header("Platform Settings")]
+    public PlatformType platformType; // Type of logic used for the platform
+    public int numberOfPlayers;
     public Vector3 pointA = Vector3.zero; // Point A
     public Vector3 pointB = Vector3.right; // Point B
     public float speed = 2f;              // Movement speed of the platform
-    public float stopTime = 2f;           // Wait time on each point
+    public float stopTime = 2f;           // Wait time at each point
 
-    private Vector3 target;               // Target at the moment
-    private bool isStopped = false;       // Indicates if Platform stopped
+    private int numberOfPlayersOnPlatform = 0;
+    private Vector3 target;               // Current target
+    private bool isStopped = false;       // Indicates if the platform is stopped
     private Rigidbody rb;                 // Platform rigidbody
     private Vector3 previousPosition;     // Previous position of the platform
+    private bool shouldMove = false;
 
     private void Start()
     {
@@ -23,7 +33,7 @@ public class DynamicPlatform : MonoBehaviour
         }
 
         this.rb.isKinematic = true; // Configure rigidbody as kinematic
-        this.target = this.pointB;       // At start it moves to point b
+        this.target = this.pointB;       // Start moving to point B
         this.previousPosition = this.transform.position; // Initialize previous position
     }
 
@@ -31,31 +41,43 @@ public class DynamicPlatform : MonoBehaviour
     {
         if (!this.isStopped)
         {
-            MovePlatform(); // Mover la plataforma si no está detenida
+            if (this.platformType == PlatformType.MaxPlayersToMove)
+            {
+                this.shouldMove = this.numberOfPlayersOnPlatform <= this.numberOfPlayers;
+            }
+            else if (this.platformType == PlatformType.MinPlayerToMove)
+            {
+                this.shouldMove = this.numberOfPlayersOnPlatform >= this.numberOfPlayers;
+            }
+
+            if (this.shouldMove)
+            {
+                MovePlatform();
+            }
         }
 
-        // Calcula el desplazamiento de la plataforma
+        // Calculate the displacement of the platform
         Vector3 displacement = transform.position - previousPosition;
 
-        // Aplica el desplazamiento a todos los objetos hijos (jugador incluido)
+        // Apply the displacement to all child objects (including the player)
         foreach (Transform child in transform)
         {
             if (child.CompareTag("Player"))
             {
-                child.position += displacement; // Mueve al jugador junto con la plataforma
+                child.position += displacement; // Move the player along with the platform
             }
         }
 
-        previousPosition = transform.position; // Actualiza la posición anterior
+        previousPosition = transform.position; // Update the previous position
     }
 
     private void MovePlatform()
     {
-        // Mueve la plataforma hacia el objetivo usando Rigidbody.MovePosition
+        // Move the platform towards the target using Rigidbody.MovePosition
         Vector3 newPosition = Vector3.MoveTowards(transform.position, target, speed * Time.fixedDeltaTime);
-        rb.MovePosition(newPosition); // Usa MovePosition para un movimiento suave
+        rb.MovePosition(newPosition); // Use MovePosition for smooth movement
 
-        // Cambia el destino si alcanza el objetivo
+        // Change the target if the platform reaches the destination
         if (Vector3.Distance(transform.position, target) < 0.01f)
         {
             StartCoroutine(StopPlatform());
@@ -64,10 +86,10 @@ public class DynamicPlatform : MonoBehaviour
 
     private System.Collections.IEnumerator StopPlatform()
     {
-        isStopped = true; // Detener la plataforma
-        yield return new WaitForSeconds(stopTime); // Esperar
-        target = target == pointA ? pointB : pointA; // Cambiar el objetivo
-        isStopped = false; // Reactivar el movimiento
+        isStopped = true; // Stop the platform
+        yield return new WaitForSeconds(stopTime); // Wait
+        target = target == pointA ? pointB : pointA; // Switch the target
+        isStopped = false; // Reactivate movement
     }
 
     private void OnTriggerEnter(Collider other)
@@ -75,7 +97,8 @@ public class DynamicPlatform : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             Debug.Log("Player entered the platform trigger.");
-            other.transform.SetParent(transform); // Hacer al jugador hijo de la plataforma
+            this.numberOfPlayersOnPlatform++;
+            other.transform.SetParent(transform); // Make the player a child of the platform
         }
     }
 
@@ -84,13 +107,14 @@ public class DynamicPlatform : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             Debug.Log("Player exited the platform trigger.");
-            other.transform.SetParent(null); // Quitar al jugador de la plataforma
+            this.numberOfPlayersOnPlatform--;
+            other.transform.SetParent(null); // Remove the player from the platform
         }
     }
 
     private void OnDrawGizmos()
     {
-        // Visualización en el editor de los puntos de destino
+        // Visualize the destination points in the editor
         Gizmos.color = Color.green;
         Gizmos.DrawLine(pointA, pointB);
         Gizmos.DrawSphere(pointA, 0.2f);

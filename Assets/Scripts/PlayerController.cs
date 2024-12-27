@@ -76,7 +76,7 @@ public class PlayerController : MonoBehaviour
         //Debug.Log("Player's air = " + this.air);
         if (this.air <= 0)
         {
-            this.Respawn();
+            StartCoroutine(HandleRespawnWithFade());
         }
     }
 
@@ -136,7 +136,6 @@ public class PlayerController : MonoBehaviour
         // Apply cooldown to the new player
         StartCoroutine(ApplyCooldownToNewPlayer(newPlayerController));
 
-        Debug.Log($"{gameObject.name} divided!");
     }
 
     // Method to calculate circular offset for the new clone
@@ -160,13 +159,29 @@ public class PlayerController : MonoBehaviour
         newPlayerController.isCoolingDownSplit = false; // Allow splitting again for the new player
     }
 
-    void Respawn()
+    IEnumerator HandleRespawnWithFade()
     {
-        // Verifica si este objeto es el mainPlayer
-        if (this != mainPlayer) return;
+        ScreenFader fader = Object.FindFirstObjectByType<ScreenFader>();
 
-        Debug.Log("Player died!");
-        StartCoroutine(HandleRespawn());
+        if (fader != null)
+        {
+            // Oscurece la pantalla
+            yield return fader.FadeInIEnumerator(0.5f);
+
+            // Espera un poco mientras la pantalla está oscura
+            //yield return new WaitForSeconds(0.2f); // Ajusta la duración según tus necesidades
+
+            // Realiza el respawn aquí
+            yield return StartCoroutine(HandleRespawn());
+
+            // Aclara la pantalla
+            yield return fader.FadeOutIEnumerator(0.5f);
+        }
+        else
+        {
+            Debug.LogWarning("ScreenFader not found!");
+            yield break; // Salir del enumerador correctamente
+        }
     }
 
     IEnumerator HandleRespawn()
@@ -180,38 +195,54 @@ public class PlayerController : MonoBehaviour
         // Restore values for main player
         mainPlayer.air = FULL_HEALTH;
         mainPlayer.currentRespawnPosition = this.currentRespawnPosition;
+
+        // Detach the player from any parent object
+        mainPlayer.transform.SetParent(null);
+
         mainPlayer.transform.position = this.currentRespawnPosition;
         mainPlayer.transform.localScale = initialScale;
         airReductionSpeed = 1.0f;
 
         // Reset UI value when respawning
         UIManager.Instance.UpdateAirSlider(mainPlayer.air, FULL_HEALTH);
-
-        Debug.Log("Player respawned at: " + mainPlayer.currentRespawnPosition);
     }
 
     // Function to delete the clones with a frame of delay
     IEnumerator DestroyClonesWithDelay()
     {
+        // We create a temporaly list to allocate the clones to destroy
+        List<PlayerController> clonesToDestroy = new List<PlayerController>();
+
+        // Add clones to new list
         for (int i = players.Count - 1; i > 0; i--)
         {
             PlayerController clone = players[i];
-
             if (clone != null && clone.gameObject != null)
             {
-                // Elimina el clon de la lista antes de destruirlo
-                players.RemoveAt(i);
+                clonesToDestroy.Add(clone);
+            }
+        }
 
-                // Mueve el clon fuera del trigger (opcional)
-                clone.transform.position = new Vector3(0, 0, 0);
+        // Delete clones from the original list and destroy them
+        foreach (PlayerController clone in clonesToDestroy)
+        {
+            if (clone != null && clone.gameObject != null)
+            {
+                players.Remove(clone); // Delete clon from main list
 
-                yield return null; // Espera un frame para que Unity procese OnTriggerExit
+                clone.transform.position = new Vector3(0, 0, 0); //We move clones to force exitting if dying on a trigger
 
-                // Destruye el clon
-                Destroy(clone.gameObject);
+                yield return new WaitForSeconds(0.1f); // Wait
+
+                // Verify before destroying
+                if (clone != null && clone.gameObject != null)
+                {
+                    Destroy(clone.gameObject);
+                }
             }
         }
     }
+
 
     // When we destroy this instance, delete it from the list
     private void OnDestroy()
