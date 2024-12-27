@@ -13,7 +13,10 @@ public class PlayerController : MonoBehaviour
     public float air = FULL_HEALTH; // Initial air's bar
 
     [Tooltip("Speed of air decreasing")]
-    public float airReductionSpeed = 2f; // Speed of air decreasing
+    public static float airReductionSpeed = 2f; // Speed of air decreasing
+
+    [Tooltip("Multiplier of speed reduction when cloning")]
+    public float airReductionMultiplier = 2f;
 
     [Tooltip("Multiplier for size reduction when splitting")]
     public float sizeReductionMultiplier = 0.8f; // Size reduction multiplier
@@ -52,7 +55,11 @@ public class PlayerController : MonoBehaviour
         // Register player in the player list
         players.Add(this);
 
-        if (mainPlayer == null) mainPlayer = this; // First player in the main one
+        if (mainPlayer == null)
+        {
+            mainPlayer = this; // First player in the main one
+            mainPlayer.transform.position = this.currentRespawnPosition;
+        }
 
         UIManager.Instance.UpdateAirSlider(this.air, FULL_HEALTH);
     }
@@ -60,7 +67,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        this.air -= Time.deltaTime * this.airReductionSpeed;
+        this.air -= Time.deltaTime * airReductionSpeed;
         this.air = Mathf.Max(0, this.air); // We ensure the value is no less than 0
 
         // Update UI value
@@ -81,6 +88,7 @@ public class PlayerController : MonoBehaviour
             if(activeSplits < this.maxNumOfSplits) // Allow a max num of copies active at the same time
             {
                 activeSplits++;
+                airReductionSpeed *= this.airReductionMultiplier;
                 StartCoroutine(HandleSplitWithDelay()); // Start coroutine to handle split with delay
             }
         }
@@ -111,9 +119,6 @@ public class PlayerController : MonoBehaviour
 
     void Split()
     {
-        // Decrease by half the air's value
-        this.air /= 2;
-
         // Calculate the position for the new player in a circular pattern
         Vector3 newPosition = this.CalculateCircularOffset();
 
@@ -157,14 +162,17 @@ public class PlayerController : MonoBehaviour
 
     void Respawn()
     {
-        Debug.Log("Player died!");
+        // Verifica si este objeto es el mainPlayer
+        if (this != mainPlayer) return;
 
-        // Delete all players except the first one
-        for (int i = players.Count - 1; i > 0; i--)
-        {
-            Destroy(players[i].gameObject);
-            players.RemoveAt(i);
-        }
+        Debug.Log("Player died!");
+        StartCoroutine(HandleRespawn());
+    }
+
+    IEnumerator HandleRespawn()
+    {
+        // Destroy clones
+        yield return DestroyClonesWithDelay();
 
         // Reset value of current splits
         activeSplits = 1;
@@ -174,15 +182,40 @@ public class PlayerController : MonoBehaviour
         mainPlayer.currentRespawnPosition = this.currentRespawnPosition;
         mainPlayer.transform.position = this.currentRespawnPosition;
         mainPlayer.transform.localScale = initialScale;
-
+        airReductionSpeed = 1.0f;
 
         // Reset UI value when respawning
         UIManager.Instance.UpdateAirSlider(mainPlayer.air, FULL_HEALTH);
+
+        Debug.Log("Player respawned at: " + mainPlayer.currentRespawnPosition);
+    }
+
+    // Function to delete the clones with a frame of delay
+    IEnumerator DestroyClonesWithDelay()
+    {
+        for (int i = players.Count - 1; i > 0; i--)
+        {
+            PlayerController clone = players[i];
+
+            if (clone != null && clone.gameObject != null)
+            {
+                // Elimina el clon de la lista antes de destruirlo
+                players.RemoveAt(i);
+
+                // Mueve el clon fuera del trigger (opcional)
+                clone.transform.position = new Vector3(0, 0, 0);
+
+                yield return null; // Espera un frame para que Unity procese OnTriggerExit
+
+                // Destruye el clon
+                Destroy(clone.gameObject);
+            }
+        }
     }
 
     // When we destroy this instance, delete it from the list
     private void OnDestroy()
     {
-        players.Remove(this);
+        //players.Remove(this);
     }
 }
