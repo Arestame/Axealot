@@ -73,10 +73,9 @@ public class PlayerController : MonoBehaviour
         // Update UI value
         UIManager.Instance.UpdateAirSlider(this.air, FULL_HEALTH);
 
-        //Debug.Log("Player's air = " + this.air);
         if (this.air <= 0)
         {
-            StartCoroutine(HandleRespawnWithFade());
+            Respawn();
         }
     }
 
@@ -85,7 +84,7 @@ public class PlayerController : MonoBehaviour
     {
         if (other.CompareTag("Splitter") && !isCoolingDownSplit) // Check if this player is not in cooldown
         {
-            if(activeSplits < this.maxNumOfSplits) // Allow a max num of copies active at the same time
+            if (activeSplits < this.maxNumOfSplits) // Allow a max num of copies active at the same time
             {
                 activeSplits++;
                 airReductionSpeed *= this.airReductionMultiplier;
@@ -99,7 +98,7 @@ public class PlayerController : MonoBehaviour
             RespawnTriggerController respawnTrigger = other.GetComponent<RespawnTriggerController>();
             if (respawnTrigger != null)
             {
-                // Actualiza la posición actual de respawn
+                // Update the current respawn position
                 this.currentRespawnPosition = respawnTrigger.playerRespawnPointPosition;
             }
         }
@@ -135,7 +134,6 @@ public class PlayerController : MonoBehaviour
 
         // Apply cooldown to the new player
         StartCoroutine(ApplyCooldownToNewPlayer(newPlayerController));
-
     }
 
     // Method to calculate circular offset for the new clone
@@ -159,29 +157,12 @@ public class PlayerController : MonoBehaviour
         newPlayerController.isCoolingDownSplit = false; // Allow splitting again for the new player
     }
 
-    IEnumerator HandleRespawnWithFade()
+    void Respawn()
     {
-        ScreenFader fader = Object.FindFirstObjectByType<ScreenFader>();
+        // Verifica si este objeto es el mainPlayer
+        if (this != mainPlayer) return;
 
-        if (fader != null)
-        {
-            // Oscurece la pantalla
-            yield return fader.FadeInIEnumerator(0.5f);
-
-            // Espera un poco mientras la pantalla está oscura
-            //yield return new WaitForSeconds(0.2f); // Ajusta la duración según tus necesidades
-
-            // Realiza el respawn aquí
-            yield return StartCoroutine(HandleRespawn());
-
-            // Aclara la pantalla
-            yield return fader.FadeOutIEnumerator(0.5f);
-        }
-        else
-        {
-            Debug.LogWarning("ScreenFader not found!");
-            yield break; // Salir del enumerador correctamente
-        }
+        StartCoroutine(HandleRespawn());
     }
 
     IEnumerator HandleRespawn()
@@ -207,10 +188,9 @@ public class PlayerController : MonoBehaviour
         UIManager.Instance.UpdateAirSlider(mainPlayer.air, FULL_HEALTH);
     }
 
-    // Function to delete the clones with a frame of delay
     IEnumerator DestroyClonesWithDelay()
     {
-        // We create a temporaly list to allocate the clones to destroy
+        // We create a temporary list to allocate the clones to destroy
         List<PlayerController> clonesToDestroy = new List<PlayerController>();
 
         // Add clones to new list
@@ -228,11 +208,11 @@ public class PlayerController : MonoBehaviour
         {
             if (clone != null && clone.gameObject != null)
             {
-                players.Remove(clone); // Delete clon from main list
+                players.Remove(clone); // Delete clone from main list
 
-                clone.transform.position = new Vector3(0, 0, 0); //We move clones to force exitting if dying on a trigger
+                clone.transform.position = new Vector3(0, 0, 0); // Move clones to force exiting if dying on a trigger
 
-                yield return new WaitForSeconds(0.1f); // Wait
+                yield return new WaitForSeconds(0.2f);
 
                 // Verify before destroying
                 if (clone != null && clone.gameObject != null)
@@ -243,10 +223,9 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
     // When we destroy this instance, delete it from the list
     private void OnDestroy()
     {
-        //players.Remove(this);
+        players.Remove(this);
     }
 }
