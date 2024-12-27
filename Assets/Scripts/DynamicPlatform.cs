@@ -10,8 +10,15 @@ public class DynamicPlatform : MonoBehaviour
         MinPlayerToMove   // The platform will only move with a cap of the min players on it
     }
 
+    public enum IterateType
+    {
+        Cyclic, // The platform at the end will comeback to the first point
+        Reverse // The platform will reverse iterate the points
+    }
+
     [Header("Platform Settings")]
     public PlatformType platformType; // Type of logic used for the platform
+    public IterateType iterateType; // Type of logic used for the platform
     public int numberOfPlayers;
     public List<Vector3> points; // List of points for the platform to follow
     public float speed = 2f;              // Movement speed of the platform
@@ -97,23 +104,34 @@ public class DynamicPlatform : MonoBehaviour
         isStopped = true; // Stop the platform
         yield return new WaitForSeconds(stopTime); // Wait
 
-        // Determine the next target index
-        if (!isReversing)
+        // Determine the next target index based on the iteration type
+        if (iterateType == IterateType.Cyclic)
         {
             currentTargetIndex++;
             if (currentTargetIndex >= points.Count)
             {
-                currentTargetIndex = points.Count - 2; // Reverse direction
-                isReversing = true;
+                currentTargetIndex = 0; // Loop back to the start
             }
         }
-        else
+        else if (iterateType == IterateType.Reverse)
         {
-            currentTargetIndex--;
-            if (currentTargetIndex < 0)
+            if (!isReversing)
             {
-                currentTargetIndex = 1; // Reverse direction
-                isReversing = false;
+                currentTargetIndex++;
+                if (currentTargetIndex >= points.Count)
+                {
+                    currentTargetIndex = points.Count - 2; // Reverse direction
+                    isReversing = true;
+                }
+            }
+            else
+            {
+                currentTargetIndex--;
+                if (currentTargetIndex < 0)
+                {
+                    currentTargetIndex = 1; // Reverse direction
+                    isReversing = false;
+                }
             }
         }
 
@@ -140,16 +158,43 @@ public class DynamicPlatform : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        // Visualize the destination points in the editor
         if (points != null && points.Count > 1)
         {
-            Gizmos.color = Color.green;
-            for (int i = 0; i < points.Count - 1; i++)
+            for (int i = 0; i < points.Count; i++)
             {
-                Gizmos.DrawLine(points[i], points[i + 1]);
+                // Draw spheres at each point
+                Gizmos.color = Color.cyan;
                 Gizmos.DrawSphere(points[i], 0.2f);
+
+                // Draw lines and arrows for direction
+                if (i < points.Count - 1)
+                {
+                    Gizmos.color = Color.white;
+                    Gizmos.DrawLine(points[i], points[i + 1]);
+                    DrawArrow(points[i], points[i + 1]);
+                }
             }
-            Gizmos.DrawSphere(points[points.Count - 1], 0.2f);
+
+            // Draw arrow connecting last point to first for cyclic iteration
+            if (iterateType == IterateType.Cyclic)
+            {
+                Gizmos.color = Color.white;
+                Gizmos.DrawLine(points[points.Count - 1], points[0]);
+                DrawArrow(points[points.Count - 1], points[0]);
+            }
         }
     }
+
+    // Helper method to draw an arrow
+    private void DrawArrow(Vector3 from, Vector3 to)
+    {
+        Vector3 direction = (to - from).normalized;
+        Vector3 right = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 150, 0) * Vector3.forward;
+        Vector3 left = Quaternion.LookRotation(direction) * Quaternion.Euler(0, -150, 0) * Vector3.forward;
+
+        float arrowHeadLength = 0.3f; // Size of the arrowhead
+        Gizmos.DrawRay(to, right * arrowHeadLength);
+        Gizmos.DrawRay(to, left * arrowHeadLength);
+    }
+
 }

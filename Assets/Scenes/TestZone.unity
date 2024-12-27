@@ -1511,6 +1511,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   platformType: 0
+  iterateType: 0
   numberOfPlayers: 2
   points:
   - {x: -8.44, y: 0, z: -2.3}
