@@ -53,7 +53,7 @@ Material:
     - _AlphaCutoff: 0.5
     - _Cull: 2
     - _EnvironmentReflections: 1
-    - _Intensity: 4.282353
+    - _Intensity: 5.02
     - _MaskClipValue: 0
     - _Opacity: 0.4
     - _QueueControl: 0
