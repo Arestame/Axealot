@@ -9,6 +9,7 @@ public class ControlledPlatform : MonoBehaviour
     private Rigidbody rb; // Platform's rigidbody
     private Vector3 previousPosition; // Previous pos of the platforn
     private bool isMoving = false; // Is platform moving
+    private float marginBoxCastDistance = 0.05f;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
@@ -67,28 +68,8 @@ public class ControlledPlatform : MonoBehaviour
         this.isMoving = false; // Detener el movimiento
     }
 
-    private float CalculateDetectionDistance()
-    {
-        Vector3 boxSize = new Vector3(
-            transform.localScale.x / 2, // Mitad del tamaño en X
-            transform.localScale.y / 2, // Mitad del tamaño en Y
-            transform.localScale.z / 2  // Mitad del tamaño en Z
-        );
-
-        // Depending on the direction of the movement, calculate the platform's size
-        float platformSizeInDirection = Mathf.Abs(Vector3.Dot(boxSize, this.currentDirection.normalized));
-
-        // Add a margin to ensure good calculations
-        float margin = 0.05f;
-
-        return platformSizeInDirection + margin;
-    }
-
     private bool IsPathBlocked()
     {
-        // We get dinamically the detection distance
-        float dynamicDetectionDistance = CalculateDetectionDistance();
-
         // Calculate BoxCast Size based on its scale
         Vector3 boxSize = new Vector3(
             transform.localScale.x / 2, // Mitad del tamaño en X
@@ -98,9 +79,8 @@ public class ControlledPlatform : MonoBehaviour
 
         // Throw a raycast from our current position to the current direction
         RaycastHit hit;
-        if (Physics.BoxCast(transform.position, boxSize, currentDirection, out hit, Quaternion.identity, dynamicDetectionDistance))
+        if (Physics.BoxCast(transform.position, boxSize, currentDirection, out hit, Quaternion.identity, this.marginBoxCastDistance))
         {
-            Debug.Log($"Camino bloqueado por: {hit.collider.name} a una distancia de: {hit.distance}");
             return true; // If detects an object, path is blocked
         }
 

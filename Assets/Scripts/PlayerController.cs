@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using static UnityEngine.UI.Image;
+using Unity.Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
@@ -49,6 +50,11 @@ public class PlayerController : MonoBehaviour
     private static int activeSplits = 1;
     private static PlayerController mainPlayer;
 
+    // 2) Reference to your Cinemachine TargetGroup
+    [Header("Camera Settings")]
+    [Tooltip("Drag your Cinemachine TargetGroup here")]
+    public CinemachineTargetGroup targetGroup;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -60,6 +66,9 @@ public class PlayerController : MonoBehaviour
             mainPlayer = this; // First player in the main one
             mainPlayer.transform.position = this.currentRespawnPosition;
         }
+
+        // 3) Add this player (main or clone) to the Cinemachine TargetGroup
+        AddToTargetGroup(this.transform);
 
         UIManager.Instance.UpdateAirSlider(this.air, FULL_HEALTH);
     }
@@ -132,6 +141,10 @@ public class PlayerController : MonoBehaviour
         this.transform.localScale *= this.sizeReductionMultiplier;
         newPlayerController.transform.localScale = this.transform.localScale;
 
+        // 4) Since this is a new clone, it will run its own Start() 
+        //    and call AddToTargetGroup in that method automatically.
+        //    (Alternatively, you could call `AddToTargetGroup` directly here.)
+
         // Apply cooldown to the new player
         StartCoroutine(ApplyCooldownToNewPlayer(newPlayerController));
     }
@@ -159,7 +172,7 @@ public class PlayerController : MonoBehaviour
 
     void Respawn()
     {
-        // Verifica si este objeto es el mainPlayer
+        // Only the main player triggers the full Respawn process
         if (this != mainPlayer) return;
 
         StartCoroutine(HandleRespawn());
@@ -223,9 +236,48 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // When we destroy this instance, delete it from the list
+    // 5) When we destroy this instance, remove it from the Cinemachine TargetGroup
     private void OnDestroy()
     {
         players.Remove(this);
+        RemoveFromTargetGroup(this.transform);
+    }
+
+    // ------------------ HELPER METHODS FOR CINEMACHINE TARGETGROUP ------------------
+
+    /// <summary>
+    /// Adds a transform to the CinemachineTargetGroup if it's assigned
+    /// </summary>
+    private void AddToTargetGroup(Transform playerTransform)
+    {
+        if (targetGroup == null) return;
+
+        // (A) EASIER WAY: Just call the built-in method
+        targetGroup.AddMember(playerTransform, 1f, 1f);
+
+        // (B) OR MANUAL WAY: 
+        // var newTargets = new List<CinemachineTargetGroup.Target>(targetGroup.Targets);
+        // var t = new CinemachineTargetGroup.Target
+        // {
+        //     Object = playerTransform,
+        //     Weight = 1f,
+        //     Radius = 2f
+        // };
+        // newTargets.Add(t);
+        // targetGroup.Targets = newTargets;
+    }
+
+    private void RemoveFromTargetGroup(Transform playerTransform)
+    {
+        if (targetGroup == null) return;
+
+        // (A) EASIER WAY: 
+        targetGroup.RemoveMember(playerTransform);
+
+        // (B) OR MANUAL WAY:
+        // var newTargets = new List<CinemachineTargetGroup.Target>(targetGroup.Targets);
+        // newTargets.RemoveAll(x => x.Object == playerTransform);
+        // targetGroup.Targets = newTargets;
     }
 }
+
