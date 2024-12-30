@@ -5,7 +5,7 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance; // Singleton to access globally
 
-    public Slider airSlider;
+    public Image airSlider;
     public GameObject respawnMessage;
 
     private void Awake()
@@ -15,12 +15,11 @@ public class UIManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    public void UpdateAirSlider(float currentAir, float maxAir)
+    public void UpdateAirSlider(float currentAir)
     {
         if (this.airSlider != null)
         {
-            this.airSlider.maxValue = maxAir;
-            this.airSlider.value = currentAir;
+            this.airSlider.fillAmount = currentAir/100;
         }
     }
 

@@ -70,7 +70,8 @@ public class PlayerController : MonoBehaviour
         // 3) Add this player (main or clone) to the Cinemachine TargetGroup
         AddToTargetGroup(this.transform);
 
-        UIManager.Instance.UpdateAirSlider(this.air, FULL_HEALTH);
+        this.air = Mathf.Clamp(this.air, 0, FULL_HEALTH); // Limitar a rango [0,100]
+        UIManager.Instance.UpdateAirSlider(this.air);
     }
 
     // Update is called once per frame
@@ -80,7 +81,8 @@ public class PlayerController : MonoBehaviour
         this.air = Mathf.Max(0, this.air); // We ensure the value is no less than 0
 
         // Update UI value
-        UIManager.Instance.UpdateAirSlider(this.air, FULL_HEALTH);
+        this.air = Mathf.Clamp(this.air, 0, FULL_HEALTH); // Limitar a rango [0,100
+        UIManager.Instance.UpdateAirSlider(this.air);
 
         if (this.air <= 0)
         {
@@ -198,7 +200,7 @@ public class PlayerController : MonoBehaviour
         airReductionSpeed = 1.0f;
 
         // Reset UI value when respawning
-        UIManager.Instance.UpdateAirSlider(mainPlayer.air, FULL_HEALTH);
+        UIManager.Instance.UpdateAirSlider(mainPlayer.air);
     }
 
     IEnumerator DestroyClonesWithDelay()

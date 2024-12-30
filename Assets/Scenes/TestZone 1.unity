@@ -2321,7 +2321,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   air: 100
-  airReductionMultiplier: 0.7
+  airReductionMultiplier: 1.5
   sizeReductionMultiplier: 0.9
   splitDelay: 0.5
   splitCooldown: 2
@@ -24672,7 +24672,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d231808da5ef3c04d8628c41be83b5c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  airSlider: {fileID: 175736197}
+  airSlider: {fileID: 1183604158}
   respawnMessage: {fileID: 0}
 --- !u!1 &1080084257
 GameObject:
