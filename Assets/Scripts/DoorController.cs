@@ -13,9 +13,6 @@ public class DoorController : MonoBehaviour
     [Tooltip("Select the logic for opening the door")]
     public DoorLogic doorLogic; // Type of logic used for the door
 
-    [Tooltip("Target position of the door when fully opened")]
-    public Vector3 doorTargetPosition; // Final position of the door
-
     [Tooltip("Speed of the door's movement")]
     public float doorMoveSpeed = 0.8f; // Speed at which the door moves
 
@@ -23,7 +20,10 @@ public class DoorController : MonoBehaviour
     public List<Slab> slabs = new List<Slab>(); // List of slabs associated with the door
 
     private Vector3 doorInitialPosition; // Initial position of the door
-    private float lerpProgress = 0f; // Progress of the door's movement (0 to 1)
+    private float lerpProgress = 0f;     // Progress of the door's movement (0 to 1)
+
+    // We define how far the door moves in the negative Y direction when opening
+    private Vector3 doorOpenOffset = new Vector3(0f, -3f, 0f);
 
     void Start()
     {
@@ -54,8 +54,10 @@ public class DoorController : MonoBehaviour
         // Clamp the lerp progress to ensure it stays between 0 and 1
         lerpProgress = Mathf.Clamp01(lerpProgress);
 
-        // Smoothly interpolate the door's position
-        transform.position = Vector3.Lerp(doorInitialPosition, doorTargetPosition, lerpProgress);
+        // Smoothly interpolate the door's position from its initial position
+        // to 2 units below in the -Y direction
+        Vector3 targetPos = doorInitialPosition + doorOpenOffset;
+        transform.position = Vector3.Lerp(doorInitialPosition, targetPos, lerpProgress);
     }
 
     // Check if any slab is active

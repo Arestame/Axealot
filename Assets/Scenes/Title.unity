@@ -20685,7 +20685,7 @@ AudioSource:
   m_PlayOnAwake: 1
   m_Volume: 0.102
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -30598,9 +30598,9 @@ MonoBehaviour:
       type: {class: GetSceneAsset, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
       data:
         m_Scene:
-          m_Scene: {fileID: 102900000, guid: e51e735be461a9c4fbc40175890a2c7a, type: 3}
-          m_SceneName: TestZone
-          m_SceneIndex: 2
+          m_Scene: {fileID: 102900000, guid: 90d96a848b48ded42a23709508247adc, type: 3}
+          m_SceneName: TestZone 1
+          m_SceneIndex: 3
     - rid: 6454874956181012734
       type: {class: InstructionGameObjectSetActive, ns: GameCreator.Runtime.VisualScripting, asm: GameCreator.Runtime.Core}
       data:

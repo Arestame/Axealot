@@ -279,14 +279,14 @@ Cull [_DoubleSidedOutline]//OL_RCUL
 Blend[_BleModSour][_BleModDest]
 
 		Stencil {
-/*//O_ST
+//O_ST/*
 			Ref[_RefVal]
 			Comp [_Compa]
 			Pass [_Oper]
 			Fail [_Oper]
 //O_ST_En*/
 
-Pass Invert//O_PI
+//Pass Invert//O_PI
 		}
 
         HLSLPROGRAM
@@ -714,7 +714,7 @@ DOTS_LiBleSki(input.indices, input.weights, input.positionOS.xyz, input.normalOS
 		Blend [_BleModSour] [_BleModDest]
 		ZWrite[_ZWrite]
 
-/*//F_ST
+//F_ST/*
 		Stencil {
             Ref[_RefVal]
             Comp [_Compa]
@@ -1705,7 +1705,7 @@ DOTS_LiBleSki(input.indices, input.weights, input.positionOS.xyz, input.normalOS
 		ZWrite[_ZWrite]
 		ZTest LEqual
 
-/*//G_ST
+//G_ST/*
 		Stencil {
             Ref[_RefVal]
             Comp [_Compa]

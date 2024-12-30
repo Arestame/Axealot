@@ -34,9 +34,9 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _UVTexture:
-        m_Texture: {fileID: 2800000, guid: c7ce7d93a6bcda44ca958725aba51363, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
+        m_Texture: {fileID: 2800000, guid: be75579a34d345d4b80011edb10a41a7, type: 3}
+        m_Scale: {x: -30, y: 1}
+        m_Offset: {x: 0, y: -0.12}
     - _texcoord:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -64,7 +64,7 @@ Material:
     - _RevealThreshold: 0.9
     - _SpecularHighlights: 1
     - _UVLight00Threshold: 0.246
-    - _UVLightThreshold: 0.48
+    - _UVLightThreshold: 0.557
     m_Colors:
     - _ColortoBeFiltered: {r: 0.40392154, g: 0, b: 1, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

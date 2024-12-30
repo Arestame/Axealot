@@ -70,8 +70,8 @@ static string twofourfive_target_string = "Change shader compilation target to 4
 static bool dots_lbs_cd = false;
 static string dots_lbs_cd_string = "DOTS|HR - Use Compute Deformation";
 
-static bool add_st = true;
-static string add_st_string = "Add 'See Through' feature";
+static bool add_st = false;
+static string add_st_string = "Remove 'See Through' feature";
 
         Texture2D t = (Texture2D)AssetDatabase.LoadAssetAtPath("Assets/RealToon/Editor/RT_GUI_Img.png", typeof(Texture2D));
 

@@ -71,3 +71,4 @@ Material:
     - _UVLightFilteredColor: {r: 0.40392157, g: 0, b: 1, a: 1}
     - _Vector0: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
